@@ -76,7 +76,7 @@ code {
   justify-content: space-between;
   align-items: center;
   gap: 16px;
-  max-width: 60rem;
+  max-width: 54rem;
   margin: 0 auto;
   padding: 16px;
   font-size: .9rem;
@@ -88,7 +88,7 @@ code {
 .topbar nav { display: flex; gap: 16px; align-items: center; }
 .lang-current { color: var(--ink); font-weight: 600; }
 
-main { max-width: 44rem; margin: 0 auto; padding: 0 16px 72px; }
+main { max-width: 54rem; margin: 0 auto; padding: 0 16px 72px; }
 
 .hero { padding: 40px 0 28px; }
 
@@ -125,14 +125,7 @@ p { margin: 0 0 1rem; }
 ul, ol { padding-left: 1.3rem; margin: 0 0 1rem; }
 li { margin-bottom: .5rem; }
 
-.wide {
-  width: min(100vw - 32px, 60rem);
-  margin-left: 50%;
-  transform: translateX(-50%);
-}
-
 figure { margin: 1.8rem 0; }
-figure.wide { margin-left: 50%; }
 
 figcaption {
   color: var(--ink2);
@@ -156,8 +149,6 @@ figcaption {
   margin: 1.4rem 0 1.8rem;
 }
 
-.tiles.wide { margin-left: 50%; }
-
 .tile {
   background: var(--surface);
   border: 1px solid var(--border);
@@ -167,10 +158,11 @@ figcaption {
 
 .tile b {
   display: block;
-  font-size: clamp(1.3rem, 2.8vw, 1.72rem);
-  line-height: 1.2;
+  font-size: clamp(1.12rem, 1.9vw, 1.38rem);
+  line-height: 1.25;
   letter-spacing: -.01em;
   font-weight: 650;
+  white-space: nowrap;
   margin-bottom: 6px;
 }
 
@@ -351,8 +343,6 @@ figcaption {
   margin: 1.2rem 0;
 }
 
-.pipe.wide { margin-left: 50%; }
-
 .pipe div {
   flex: 1 1 7.2rem;
   background: var(--surface);
@@ -521,7 +511,7 @@ th { color: var(--ink2); font-weight: 600; }
 
 /* footer */
 footer {
-  max-width: 44rem;
+  max-width: 54rem;
   margin: 0 auto;
   padding: 24px 16px 56px;
   border-top: 1px solid var(--grid);
