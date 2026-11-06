@@ -39,7 +39,6 @@ Jack Sun Kelip. "Claude Programs a Robot in Weight Space." Blog post, November 2
 
 ```bibtex
 @misc{sun2026claude,
-  author       = {{Jack Sun Kelip}},
   title        = {Claude Programs a Robot in Weight Space},
   year         = {2026},
   month        = nov,
