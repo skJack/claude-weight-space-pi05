@@ -35,11 +35,11 @@ The report should show `rel_frob` 0.0808, and SHA-256 prefixes `c3c6ae81d4fa4956
 
 If you'd like to cite this post, please use: · 如果要引用这篇文章，请使用以下格式：
 
-Ke Sun. "Claude Programs a Robot in Weight Space." Blog post, November 2026. https://skjack.github.io/claude-weight-space-pi05/
+Jack Sun Kelip. "Claude Programs a Robot in Weight Space." Blog post, November 2026. https://skjack.github.io/claude-weight-space-pi05/
 
 ```bibtex
 @misc{sun2026claude,
-  author       = {Ke Sun},
+  author       = {{Jack Sun Kelip}},
   title        = {Claude Programs a Robot in Weight Space},
   year         = {2026},
   month        = nov,

@@ -3,7 +3,7 @@ Usage: python3 site_src/build.py   (from the repository root). Standard library 
 import csv, html, json, os, sys
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
-AUTHOR = "Ke Sun"
+AUTHOR = "Jack Sun Kelip"
 REPO = "https://github.com/skJack/claude-weight-space-pi05"
 SITE = "https://skjack.github.io/claude-weight-space-pi05/"
 
