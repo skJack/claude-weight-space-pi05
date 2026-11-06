@@ -1,0 +1,180 @@
+<header class="hero">
+  <h1>Claude Programs a Robot in Weight Space</h1>
+  <p class="deck">No gradients and no training. Claude changed one matrix inside π0.5, the model driving the robot, and success on 50 RoboCasa tasks rose from 51.9% to 65.1%.</p>
+  <p class="byline">{{author}}</p>
+</header>
+
+<h2 id="setting">The setting</h2>
+
+<p>Neural networks are normally changed by training: choose a loss, run gradient descent, and let the weights move. MIT's <a href="https://rikiyat.github.io/blog/weight-space-programming/"><em>Sparks of Weight-Space Programming</em></a> (Takehi et al., 2026; a blog post, not peer reviewed) tried something else. GPT-6 Astra read and rewrote weights directly, and in one experiment changed 0.016% of a small language model's weights to raise its MATH-500 score from 7.9% to 48.1%. We wanted to know whether this reaches a model that drives a robot, so we tried it with Claude Opus 5.5.</p>
+
+<p>The model is π0.5, a vision-language-action model from <a href="https://github.com/Physical-Intelligence/openpi">Physical Intelligence</a>. It takes camera images, the robot's state and a text instruction, and uses flow matching to produce a 50-step action chunk. We used the <a href="https://huggingface.co/robocasa/robocasa365_checkpoints">public checkpoint</a> from the RoboCasa team, <code>pi05_pretrain_human300</code>, converted to PyTorch, and ran it in RoboCasa's simulated kitchens with the settings of the <a href="https://github.com/robocasa-benchmark/openpi">official evaluation script</a>. The rules were simple:</p>
+
+<ul>
+  <li>Claude may change π0.5's weights and the processing around the model.</li>
+  <li>No gradient descent and no training.</li>
+  <li>Every change is tested in closed-loop rollouts against the unmodified model, on the same tasks and seeds.</li>
+</ul>
+
+<p>Claude works on the weights through code: it loads tensors, reads activations, computes a change, writes the new matrix and runs rollouts to check it. A person set the goal and the rules, and questioned the results along the way. Claude chose what to look at, wrote the analysis code, ran the experiments and picked the edits.</p>
+
+<h2 id="result">Before and after</h2>
+
+<div class="tiles wide">
+  <div class="tile lead"><b>51.9% → 65.1%</b><span>task success over 1,000 episode pairs on 50 tasks, using seeds not involved in choosing the edit</span></div>
+  <div class="tile"><b>+219 / −87</b><span>episodes that went from failure to success, and from success to failure (McNemar p ≈ 3×10⁻¹⁴)</span></div>
+  <div class="tile"><b>17.1 s → 11.1 s</b><span>median time to success (342 → 221 steps at 20 Hz)</span></div>
+  <div class="tile"><b>1 matrix</b><span>2048 × 1152, or 0.065% of the parameters; its norm changed by 8.1%</span></div>
+</div>
+
+{{gallery}}
+
+<p>These clips are not a random sample. For each task we took the lowest-numbered episode in which the original model failed and the edited model succeeded, among pairs that start from a bit-identical simulator state. Over all 1,000 pairs that kind of flip happened 219 times. The reverse happened 87 times, and the last clips above show it.</p>
+
+{{film}}
+
+<h2 id="process">How Claude found it</h2>
+
+<p>The path was not a straight line. Claude began with the MIT approach and it failed. What the edit ended up fixing was a mismatch between the images π0.5 was trained on and the images it sees in evaluation.</p>
+
+<h3>1. There was no single failure to fix</h3>
+<p>Claude started from 1,478 recorded π0.5 episodes from an earlier survey, 741 of them successful. The failures fell into six types, and the largest was 24%. In the MIT experiment that inspired this, one failure mode accounted for 93% of the answers, so a single direction could carry the fix. Here nothing stood out.</p>
+
+<h3>2. The plans start slow</h3>
+<p>The recorded action chunks did show a pattern. In closed-loop states, the first 5 planned steps moved 0.242 per step, while steps 20–35 moved 0.448. π0.5 replans every 5 steps, so it only ever executes the slowest part of each plan.</p>
+
+<h3>3. The MIT recipe did nothing here</h3>
+<p>Claude then tried the approach from the MIT post: find a direction in the action expert that separates good from bad behavior, then remove it. The 24 candidates, such as stuck versus moving, left the opening speed at 1.00 times the original, with at most a 3% difference. A closed-loop run of the failure-minus-success direction moved success from 20 to 24 of 80 episodes (p = 0.29).</p>
+
+<h3>4. An accident</h3>
+<p>The recordings store images as JPEG. When Claude recomputed actions from those images with the same noise, to check its own pipeline, the actions differed from the recorded ones by about a third, and the openings got faster. Recomputing from lossless PNG recordings matched bit for bit. So the pipeline was fine, and the model was reacting strongly to JPEG compression.</p>
+
+<h3>5. Same state, same noise, two images</h3>
+<p>That raised a better question. π0.5 was trained on videos: the official dataset is H.264 (x264 CRF 23, yuv420p). Evaluation feeds it uncompressed renders, both in the official script and in ours. So Claude restored simulator states from the training demonstrations, rendered them again, and compared each render with the decoded training frame of the same state. The two differ by about 40 dB PSNR. You can try telling them apart here:</p>
+
+{{compare}}
+
+<p>The model treats them very differently. Figure 1 shows the planned speed for the same states with the same noise. On training frames, the opening speed is close to the human demonstration. On renders it drops by about a third, and it recovers later in the chunk. Only the opening gets executed, so the robot keeps running the slow part. In the first check on 70 states from 6 tasks, the opening speed was 0.541 for the human, 0.542 on training frames and 0.356 on renders.</p>
+
+{{fig_speed}}
+
+<h3>6. It is sharpness, not noise</h3>
+<p>White noise with σ = 3 changes pixels by 2.39 on average and actions by 0.011. A blur with σ = 0.8 changes pixels by a similar 2.68 and actions by 0.081. Opening speed rises steadily with blur: 0.242, 0.342 (σ = 0.5), 0.540 (σ = 0.8), 0.607 (σ = 1.2). The wrist camera matters most: swapping only that view to the training frame takes the speed from 0.356 to 0.507, against 0.407 for the right camera and 0.370 for the left.</p>
+<p>In token space, a single direction works like a knob. Pushing the projection layer's bias along the mean render-minus-training-frame difference moves the opening speed smoothly from 0.226 to 0.647. Images sort along that direction by sharpness (wrist camera): white noise 36.1, raw render 35.9, JPEG95 33.0, JPEG90 26.9, blur 0.6 25.7, training frame 22.1, blur 0.8 20.3, JPEG50 7.5.</p>
+
+<h3>7. From an image effect to a weight edit</h3>
+<p>SigLIP's patch embedding is linear, so multiplying it by a Gaussian kernel is the same as blurring every patch. That first edit took 16 practice tasks from 45 to 73 of 160 successes. Claude then searched more widely, over 4,480 practice episodes in total: weight edits at every stage of the network, changes to the processing, and combinations of the two.</p>
+<p>The closer to the image, the stronger the effect. Out of 80 episodes, against 20 for the original model, edits on the projection layer reached 39–42 and SigLIP's last layer reached 31. Backbone layer 12 reached 28 (p = 0.057). Edits inside the action expert stayed at 23–24, which is within noise. Adding other changes on top of the fix, such as more denoising steps or attention offsets, never beat the fix by more than noise, and a few made it worse. That covers only the edits we tried, so it doesn't prove the action expert can't be edited usefully.</p>
+
+<h2 id="edit">The edit</h2>
+
+<div class="pipe wide">
+  <div><b>Camera images</b>3 views</div>
+  <div><b>SigLIP</b>1152-dim tokens</div>
+  <div class="edited"><b>Projection layer</b>W, 2048 × 1152. The only tensor changed</div>
+  <div><b>PaliGemma backbone</b>Gemma 2B</div>
+  <div><b>Action expert</b>Gemma 300M</div>
+  <div><b>Flow matching</b>50-step action chunk</div>
+</div>
+
+<p>The projection layer maps SigLIP tokens into the backbone: <code>y = W x + b</code>. The edit removes three input directions from it and leaves the bias alone:</p>
+
+<div class="formula">W′ = W (I − V Vᵀ)<br><small># in code</small><br>W = W - (W @ V) @ V.T</div>
+
+<p>V came from data, without gradients:</p>
+<ol>
+  <li>Take 254 simulator states from the training demonstrations of 27 tasks, none of them among the 10 held-out test tasks.</li>
+  <li>For each state, get two images: a fresh render and the decoded training frame. Three cameras with 256 tokens per image give 195,072 token pairs.</li>
+  <li>Subtract each pair after SigLIP's <code>post_layernorm</code>, compute the second-moment matrix of the differences, and keep the top 3 eigenvectors.</li>
+</ol>
+
+<p>On 305 states from 27 other tasks, the opening speed goes from 0.377 to 0.576, against 0.585 on training frames. The gap to the actions planned from training frames falls from 0.053 to 0.025. Three directions are close to saturation: two give 0.529 and five give 0.580.</p>
+
+<p>Most of the matrix's behavior survives. Its largest singular value stays at 14.93, and a random direction keeps 99.8% of its gain (median). The three chosen directions fall from a gain of about 1.9 to 0.002. The edit isn't harmless, though: those directions also hold 27% of the energy in training-frame tokens, and the distance between render and training-frame tokens shrinks by only 19%. The two kinds of image don't become the same to the model.</p>
+
+<p><strong>The directions matter.</strong> In the same matrix, with the same norm change (8.2%), three random directions with matched gain leave the speed at 0.377 and 0.376, which is the same as no edit. The three directions with the most token energy break the model (0.077). {{closed_loop_controls}}</p>
+
+<p><strong>Where the change is largest isn't where it works.</strong> Column 725 of W holds 18.1% of the change's energy and was rewritten by 133%, and dimension 725 is where renders and training frames differ most on average. We expected it to be the key. It isn't: zeroing that column gives 0.382, flipping its sign gives 0.414, and zeroing the top 5 columns (a 7.6% norm change) gives 0.385. Random columns give 0.377. We don't yet know which part of the three directions does the work.</p>
+
+<h2 id="numbers">The full results</h2>
+
+{{fig_tasks}}
+
+<p>The gain isn't uniform. Grouping tasks after seeing the results, so this is only descriptive: pick-and-place went from 56.5% to 78.5%, buttons and knobs from 37.1% to 43.6%, and everything else from 58.3% to 70.7%. <code>OpenOven</code> stayed near zero. The 18 official Atomic-Seen tasks went from 51.9% to 65.8%.</p>
+
+<p>Using tasks to estimate the directions doesn't seem to inflate the gain. The 19 tasks used for that went from 56.1% to 64.7%, and the 12 tasks that were not used to estimate directions, for offline evaluation or in practice went from 47.1% to 64.6%.</p>
+
+<p><strong>Not every pair is an exact pair.</strong> In 924 of the 1,000 pairs, the two episodes start from a bit-identical simulator state. For a few tasks, mainly kettle, sink and stand mixer, environment creation isn't fully determined by the seed. On the 924 exact pairs the result is 51.0% → 64.0% (+200 / −80, p ≈ 5×10⁻¹³).</p>
+
+<p><strong>The test set.</strong> Before the 1,000 fresh-seed episodes, we ran three candidates once on a test set with pass rules written in advance: 22 tasks × 30 episodes. The original got 35.2%, patch-embedding blur 49.2%, five directions 52.3% and three directions 53.8%. On the 10 tasks held out of every earlier step, three directions went from 47.7% to 68.0%. All three passed.</p>
+
+<p><strong>The three-direction edit isn't better than the blur.</strong> Its lead on the test set was probably a selection effect. On fresh seeds the two tie: 225 and 224 of 440 (+52 / −51 against each other). The difference is size: the blur changes the patch embedding by 44% in norm, and this edit changes the projection layer by 8.1%.</p>
+
+<h2 id="baseline">Is the baseline broken?</h2>
+
+<p>A 13-point gain from a small edit should make anyone suspect the setup, so we checked.</p>
+<ul>
+  <li>The official evaluation script also feeds uncompressed renders, and the official dataset is video. The mismatch comes with the official pipeline; we didn't introduce it.</li>
+  <li>Replanning, time limits, state format and action conversion match the official script. In 3 tasks, the state in our loop and in the training data are bit-identical for the same simulator state.</li>
+  <li>We ran the official stack itself: JAX weights, <code>serve_policy</code> and the official client's <code>eval_env</code>, on the target split, with 8 tasks × 20 episodes. It got 55/160 (34.4%) and our baseline got 59/160 (36.9%). The difference is −2.5 points with a 95% CI of about −13 to +8, so this only rules out a large offset.</li>
+</ul>
+<p>A <a href="https://benchmarklist.com/benchmarks/robocasa365/">third-party leaderboard</a> lists π0.5 at 39.6% on Atomic-Seen, while our baseline gets 51.9% on the same 18 tasks. We can't explain this gap, because the leaderboard doesn't state its settings or episode counts. Please don't compare the two numbers directly.</p>
+
+<h2 id="limits">What this says about editing weights</h2>
+
+<h3>What it shows</h3>
+<p>A language model can change a trained robot policy directly and make it better in closed loop, with no gradient descent and no training. The whole change is three vectors and one line of linear algebra, so anyone can read it, check it by hash and undo it. It held up on seeds and tasks that played no part in choosing it.</p>
+
+<h3>What it doesn't show</h3>
+<ul>
+  <li><strong>Claude didn't find the fix by reading the weights.</strong> The clue came from comparing training images with deployment images. Reading the action expert and applying the MIT recipe found nothing. The contrasts that recipe relies on, like failure minus success, have a cosine within ±0.11 of this direction (measured on JPEG recordings). Every closed-loop frame is equally sharp, so the difference doesn't show up between failures and successes. The weights were where the fix got written down, not where it was discovered.</li>
+  <li><strong>The weight edit doesn't beat a simpler fix here.</strong> Without touching any weights, encoding frames with x264 in the loop gives about the same result: 70 of 160 practice episodes against 73 for the blur edit, up from 45 (p = 0.74 between them). The weight version only saves you from changing the input pipeline.</li>
+  <li><strong>Moving faster isn't the fix on its own.</strong> Skipping the first 5 steps of each chunk gave 45 → 50 of 160 (p = 0.51). An action gain of 1.3 gave 20 → 23 of 80, and on top of the five-direction edit it lowered success from 42 to 30 (p = 0.012).</li>
+  <li><strong>The explanation is a guess.</strong> A single image and the robot's state hold no velocity, so the model may have learned to read motion from compression softness. Closed-loop images are always sharp, so it would always think it's standing still and plan a slow start. The evidence: on training frames, this direction correlates with human speed (r = −0.24, −0.34 and −0.28 for the left, wrist and right cameras), and on renders of the same states it barely does (−0.05, −0.03 and −0.08). The correlations are moderate, and a direct test would need retraining.</li>
+  <li><strong>Coverage is limited.</strong> These are 50 short tasks: 18 from official Atomic-Seen plus 32 others we picked. They aren't the official <code>target50</code>, and its 32 composite tasks are untested. Eleven tasks went down, though at 20 episodes per task some of that is noise.</li>
+  <li><strong>Simulation only, one run.</strong> Nothing has run on a real robot. This is a single debugging run by one model, and we have no fine-tuning baseline at the same rollout budget.</li>
+  <li><strong>Prior work.</strong> Three rounds of searching found no direct report of this image effect, but the search wasn't exhaustive. If you know of one, please tell us.</li>
+</ul>
+
+<h3>Questions we'd like to hear about</h3>
+<ul>
+  <li>Can a language model fix faults that don't come down to an input mismatch, the kind no preprocessing step can reach? Every edit we tried inside the action expert failed, but we only tried a few kinds.</li>
+  <li>When is editing weights a better tool than fine-tuning? How would you compare them fairly at the same rollout budget?</li>
+  <li>How should an agent's edit be reviewed? This one changes 2.25 million numbers, and 87 episodes got worse alongside the 219 that got better. What should count as enough evidence before a change like this goes on a real robot?</li>
+</ul>
+
+<h2 id="check">If you train on video datasets</h2>
+
+<p>LeRobot-format datasets are commonly stored as video, so other projects may have the same gap. We have only tested one model on one dataset, so we don't know how common it is. The check is cheap:</p>
+<ol>
+  <li>Restore a few states from your training data in your simulator, and render them the way your evaluation does.</li>
+  <li>Run the model on the render and on the decoded training frame, with the same noise.</li>
+  <li>Compare the first few planned actions. If they differ by much more than white noise of the same pixel size causes, try re-encoding frames in the loop and measure success.</li>
+</ol>
+
+<h2 id="files">Data and code</h2>
+
+<p>Everything is in the <a href="{{repo}}">GitHub repository</a>:</p>
+<ul>
+  <li><a href="{{repo}}/tree/main/edit"><code>edit/</code></a>: the exact edit, the script that applies it, and SHA-256 prefixes for checking (before <code>c3c6ae81d4fa4956</code>, after <code>102128668f8b1ba5</code>).</li>
+  <li><a href="{{repo}}/tree/main/results"><code>results/</code></a>: per-episode outcomes for the fresh seeds and the test set, every practice run, the official-stack check and the offline controls.</li>
+  <li><a href="{{repo}}/tree/main/code"><code>code/</code></a>: the scripts for the main steps. <code>estimate_directions.py</code> reproduces the three directions (cosine 1.000000 with the published edit). The rollout harness isn't included, so the headline numbers need your own loop.</li>
+</ul>
+
+<h2 id="cite">Citation</h2>
+
+<p>If you'd like to cite this post, please use:</p>
+
+<p class="cite-text">Ke Sun. &ldquo;Claude Programs a Robot in Weight Space.&rdquo; Blog post, November 2026. <a href="https://skjack.github.io/claude-weight-space-pi05/">https://skjack.github.io/claude-weight-space-pi05/</a></p>
+
+<div class="cite-bib" data-copy data-copied="Copied">
+  <button type="button" class="tab cite-copy">Copy</button>
+  <pre><code>@misc{sun2026claude,
+  author       = {Ke Sun},
+  title        = {Claude Programs a Robot in Weight Space},
+  year         = {2026},
+  month        = nov,
+  howpublished = {\url{https://skjack.github.io/claude-weight-space-pi05/}},
+  note         = {Blog post}
+}</code></pre>
+</div>

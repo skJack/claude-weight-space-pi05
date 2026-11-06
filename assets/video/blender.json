@@ -1,0 +1,1 @@
+{"name": "blender", "task": "PickPlaceCounterToBlender", "ep": 0, "seed": 40000, "lang": "Pick the orange from the counter and place it in the blender.", "layout": "5", "style": "5", "base_success": false, "base_steps": 1125, "edit_success": true, "edit_steps": 734, "base_render_psnr": [42.4, 42.8, 42.7, 43.0, 43.4], "edit_render_psnr": [42.4, 42.7, 42.8, 42.6, 42.1]}

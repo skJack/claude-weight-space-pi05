@@ -1,0 +1,25 @@
+{
+ "version": "v2_post_k3",
+ "base_ckpt": "robocasa/robocasa365_checkpoints: pi05_pretrain_human300/multitask_learning/75000，用 openpi 转成 PyTorch，model.safetensors sha256 前缀 0ec334a0a5db804df724",
+ "edit": {
+  "tensor": "paligemma_with_expert.paligemma.model.multi_modal_projector.linear.weight",
+  "kind": "input_abl",
+  "k": 3,
+  "formula": "W' = W·(I − VVᵀ)，V 是同一仿真状态下 SigLIP 输出（post_layernorm 之后）的 渲染原图 − 训练视频帧 差的前 k 个主成分（估计集：训练集里和留出任务不重叠的 27 个任务）",
+  "shape": [
+   2048,
+   1152
+  ],
+  "n_changed_after_bf16": 2252085,
+  "n_total_tensor": 2359296,
+  "share_of_all_params": 0.0006523235209862783,
+  "rel_frobenius": 0.080822,
+  "dtype_runtime": "bfloat16"
+ },
+ "sha256_prefix": {
+  "before": "c3c6ae81d4fa4956",
+  "after": "102128668f8b1ba5"
+ },
+ "apply": "edit/apply_edit.py 的 apply_edit(model, 'edit/edit.npz')",
+ "no_gradient": true
+}

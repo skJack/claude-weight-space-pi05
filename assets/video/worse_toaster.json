@@ -1,0 +1,1 @@
+{"name": "worse_toaster", "task": "PickPlaceCounterToToasterOven", "ep": 0, "seed": 40000, "lang": "Place the bread on the rack of the toaster oven.", "layout": "10", "style": "10", "base_success": true, "base_steps": 440, "edit_success": false, "edit_steps": 675, "base_render_psnr": [41.2, 40.6, 39.4, 41.0, 40.3], "edit_render_psnr": [41.2, 41.0, 41.3, 40.9, 41.1]}

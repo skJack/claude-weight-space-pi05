@@ -1,0 +1,9 @@
+task,official_success,official_episodes,ours_fresh_success,ours_fresh_episodes,ours_s7000_success,ours_s7000_episodes
+CloseMicrowave,10,20,15,20,19,30
+CloseToasterOvenDoor,7,20,5,20,1,30
+CoffeeServeMug,7,20,4,20,6,30
+OpenCabinet,9,20,12,20,16,30
+PickPlaceCounterToBlender,7,20,6,20,0,0
+PickPlaceMicrowaveToCounter,8,20,8,20,18,30
+TurnOnElectricKettle,7,20,6,20,6,30
+TurnOnMicrowave,0,20,3,20,9,30

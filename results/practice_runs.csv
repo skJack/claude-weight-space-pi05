@@ -1,0 +1,49 @@
+run,changes_weights,description,episodes,base_success,success,more,fewer,mcnemar_p
+skip5_p16_s20000,no,Skip the first 5 steps of each chunk,160,45,50,21,16,0.511
+jpeg90_p16_s20000,no,JPEG quality 90 on the input,160,45,57,24,12,0.0652
+blur05_p16_s20000,no,"Image blur, sigma 0.5",160,45,64,30,11,0.00432
+blur08_p16_s20000,no,"Image blur, sigma 0.8",160,45,64,36,17,0.0127
+pblur06_p16_s20000,yes,"Patch embedding blur, sigma 0.6 (v1_patch_blur)",160,45,73,37,9,4.06e-05
+x264crf23_p16_s20000,no,x264 CRF 23 stream encode and decode in the loop,160,45,70,34,9,0.00017
+s1_post_k5,yes,"Projection layer, input side: remove 5 directions (post_k5)",80,20,42,23,1,2.98e-06
+s1_post_k3,yes,"Projection layer, input side: remove 3 directions (post_k3)",80,20,39,21,2,6.6e-05
+s1_projablmean1,yes,"Projection layer, output side: remove 1 direction and shift bias",80,20,36,21,5,0.00249
+s1_projk1_a2,yes,"Projection layer, output side: 1 direction, alpha 2",80,20,35,18,3,0.00149
+s1_bias_m6,yes,"Projection bias shift only, c = -6",80,20,35,21,6,0.00592
+s1_bias_m4,yes,"Projection bias shift only, c = -4",80,20,32,17,5,0.0169
+s1_dct6g05,yes,Patch embedding: halve high frequencies,80,20,32,15,3,0.00754
+s1_pblur07,yes,"Patch embedding blur, sigma 0.7",80,20,32,20,8,0.0357
+s1_pblur05,yes,"Patch embedding blur, sigma 0.5",80,20,29,13,4,0.049
+s1_patchabl10,yes,Patch embedding: remove 10 directions,80,20,31,17,6,0.0347
+s1_sig26_a6,yes,"SigLIP layer 26: remove direction, alpha 6",80,20,31,16,5,0.0266
+s1_projabl1,yes,"Projection layer, output side: remove 1 direction",80,20,30,15,5,0.0414
+s1_bb12_am6,yes,"Backbone layer 12: amplify direction, alpha -6",80,20,28,11,3,0.0574
+s1_bb12_am10,yes,"Backbone layer 12: amplify direction, alpha -10",80,20,28,11,3,0.0574
+s1_rope5,yes,"Action expert RoPE shift, delta 5",80,20,23,8,5,0.581
+s1_exoL17_g13,yes,Action expert layer 17 attention write-back x1.3,80,20,23,8,5,0.581
+s1_randfilter06,yes,Control: random filter with the spectrum of blur 0.6,80,20,25,13,8,0.383
+s1_mit_recipe,yes,"Control: MIT recipe on action expert layers 12 and 15 (failure - success direction, top-64 columns, alpha 6)",80,20,24,6,2,0.289
+s1_post_randgain0,yes,Control: 3 random directions with matched gain,80,20,18,3,5,0.727
+s1_post_tokpc,yes,Control: 3 directions with the most token energy,80,20,0,0,20,1.91e-06
+s1_blurwrist08,no,"Blur the wrist camera only, sigma 0.8",80,20,30,16,6,0.0525
+s1_gain13,no,Action gain 1.3,80,20,23,9,6,0.607
+s1_cropleft95,no,Left camera crop 0.95,80,20,16,3,7,0.344
+s1_P_attnwrist1,yes,Patch blur + wrist attention offset,80,20,39,21,2,6.6e-05
+s1_P_gain13,yes,Patch blur + action gain 1.3,80,20,39,24,5,0.000546
+s1_P_steps20,yes,Patch blur + 20 denoising steps,80,20,38,21,3,0.000277
+s1_P_attntask1,yes,Patch blur + instruction attention offset,80,20,37,21,4,0.000911
+s1_P_exec3,yes,Patch blur + execute 3 steps,80,20,37,20,3,0.000488
+s1_P_samples4,yes,Patch blur + 4 samples,80,20,36,20,4,0.00154
+s1_P_exec8b,yes,Patch blur + execute 8 steps,80,20,34,19,5,0.00661
+s1_P_cfg15,yes,Patch blur + CFG 1.5,80,20,33,20,7,0.0192
+s1_P_wrist1_gain13,yes,Patch blur + wrist attention + gain 1.3,80,20,33,20,7,0.0192
+s1_P_noise07,yes,Patch blur + initial noise x0.7,80,20,32,17,5,0.0169
+s1_P_attnstate-1,yes,Patch blur + state attention offset -1,80,20,31,18,7,0.0433
+s1_K3_pblur04,yes,post_k3 + patch blur 0.4,80,20,41,23,2,1.94e-05
+s1_K3_modebias1,yes,post_k3 + mode-bit bias,80,20,39,20,1,2.1e-05
+s1_K_cropleft95,yes,post_k5 + left camera crop,80,20,41,22,1,5.72e-06
+s1_K_wrist1,yes,post_k5 + wrist attention offset,80,20,40,22,2,3.59e-05
+s1_K_te3,yes,post_k5 + temporal averaging over 3 chunks,80,20,37,21,4,0.000911
+s1_K_steps20,yes,post_k5 + 20 denoising steps,80,20,34,16,2,0.00131
+s1_K_statebase,yes,post_k5 + constant base pose in the state,80,20,34,17,3,0.00258
+s1_K_gain13,yes,post_k5 + action gain 1.3,80,20,30,17,7,0.0639

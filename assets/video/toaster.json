@@ -1,0 +1,1 @@
+{"name": "toaster", "task": "CloseToasterOvenDoor", "ep": 1, "seed": 30001, "lang": "Close the toaster oven door.", "layout": "4", "style": "4", "base_success": false, "base_steps": 675, "edit_success": true, "edit_steps": 530, "base_render_psnr": [41.7, 41.5, 41.7, 41.4, 41.7], "edit_render_psnr": [41.7, 41.7, 41.6, 41.5, 41.3]}

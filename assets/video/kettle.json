@@ -1,0 +1,1 @@
+{"name": "kettle", "task": "TurnOnElectricKettle", "ep": 5, "seed": 30005, "lang": "Press down the lever to turn on the electric kettle.", "layout": "4", "style": "4", "base_success": false, "base_steps": 675, "edit_success": true, "edit_steps": 115, "base_render_psnr": [41.8, 41.6, 41.8, 41.4, 41.6], "edit_render_psnr": [41.8, 40.9, 41.1, 41.1, 41.4]}

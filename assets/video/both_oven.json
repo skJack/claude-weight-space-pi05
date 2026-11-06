@@ -1,0 +1,1 @@
+{"name": "both_oven", "task": "OpenOven", "ep": 0, "seed": 30000, "lang": "Open the oven door.", "layout": "9", "style": "9", "base_success": false, "base_steps": 450, "edit_success": false, "edit_steps": 450, "base_render_psnr": [41.7, 41.1, 41.9, 41.6, 41.7], "edit_render_psnr": [41.7, 41.7, 41.7, 41.8, 41.8]}

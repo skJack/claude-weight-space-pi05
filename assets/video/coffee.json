@@ -1,0 +1,1 @@
+{"name": "coffee", "task": "CoffeeServeMug", "ep": 0, "seed": 30000, "lang": "Pick the mug from under the coffee machine dispenser and place it on the counter.", "layout": "3", "style": "3", "base_success": false, "base_steps": 675, "edit_success": true, "edit_steps": 133, "base_render_psnr": [40.6, 40.9, 40.9, 40.9, 40.8], "edit_render_psnr": [40.6, 40.4, 40.7, 40.6, 37.7]}
