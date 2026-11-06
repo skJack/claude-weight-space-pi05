@@ -1,6 +1,6 @@
 """Build index.html (English) and zh.html (Chinese) from en.html, zh.html and the CSV files in results/.
 Usage: python3 site_src/build.py   (from the repository root). Standard library only."""
-import csv, html, json, os, sys
+import csv, html, json, os, re, sys
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
 AUTHOR = "Jack Sun Kelip"
@@ -286,7 +286,8 @@ def build(L):
     body = open(os.path.join(ROOT, "site_src", L + ".html")).read()
     for k, v in (("{{author}}", AUTHOR), ("{{repo}}", REPO), ("{{gallery}}", gallery(L)), ("{{film}}", film(L)), ("{{compare}}", compare(L)), ("{{fig_speed}}", fig_speed(L)), ("{{fig_tasks}}", fig_tasks(L)), ("{{closed_loop_controls}}", controls(L))):
         body = body.replace(k, v)
-    assert "{{" not in body, body[body.index("{{"):][:40]
+    left = re.search(r"\{\{[a-z_]+\}\}", body)   # unfilled placeholders; BibTeX braces are fine
+    assert left is None, left and left.group(0)
     out = PAGE % dict(lang=t["lang"], title=t["title"], desc=html.escape(t["desc"], quote=True), url=SITE + ("" if L == "en" else "zh.html"), site=SITE, repo=REPO, code=t["code"], this_label=t["this_label"], other=t["other"], other_label=t["other_label"], other_lang="zh" if L == "en" else "en", body=body, footer=FOOT[L].format(author=AUTHOR, repo=REPO))
     open(os.path.join(ROOT, t["file"]), "w").write(out)
     print("wrote", t["file"], len(out))
